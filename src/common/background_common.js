@@ -6,11 +6,12 @@ import { CONFIG } from './config.js';
  */
 const CONVERSATION_TYPES = {
     FLASHCARD: 'flashcard',
-    DEFINITION: 'definition',
-    MNEMONIC: 'mnemonic',
     TRANSLATION: 'translation',
-    CONTEXT: 'context',
-    EXAMPLES: 'examples'
+    CONJUGATION: 'conjugation',
+    GENDER: 'gender',
+    EXAMPLES: 'examples',
+    EXAMPLECARD: 'exampleCard',
+    EXAMPLECARDGERMAN: 'exampleCardGerman'
 };
 
 /**
@@ -149,25 +150,32 @@ function createCustomModelForLanguage(modelName) {
             if (!models.includes(modelName)) {
                 return invoke('createModel', 6, {
                     modelName: modelName,
-                    inOrderFields: ["Definition", "Selection", "Context", "Translation", "Examples", "Mnemonic", "Add Reverse"],
+                    inOrderFields: ["Selection", "Translation", "Examples","Conjugation","Gender","ExampleCard", "ExampleCardGerman","Add Reverse"],
+                
                     cardTemplates: [
                         {
                             Name: "Card 1",
-                            Front: `{{Definition}}`,
+                            Front: `{{Translation}}`,
                             Back: `{{FrontSide}}
                                 <hr id="answer">
                                 <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>
                                     <div style="margin-bottom: 5px;">{{Selection}}</div>
                                     <div style="margin-bottom: 10px;">${chrome.i18n.getMessage('moveLineHere')}</div>
-                                    <i>{{Translation}}</i>
                                 </div>
                                 {{#Context}}
                                 <br>
                                 <div style='font-family: "Arial"; font-size: 18px;'>
-                                    <b>${chrome.i18n.getMessage("Context")}</b><br>
-                                    {{Context}}
+                                    <b>${chrome.i18n.getMessage("Conjugation")}</b><br>
+                                    {{Conjugation}}
                                 </div>
                                 {{/Context}}
+                                {{#Mnemonic}}
+                                <br>
+                                <div style='font-family: "Arial"; font-size: 18px;'>
+                                    <b>${chrome.i18n.getMessage("Gender")}</b><br>
+                                    {{Gender}}
+                                </div>
+                                {{/Mnemonic}}
                                 {{#Examples}}
                                 <br>
                                 <div style='font-family: "Arial"; font-size: 18px;'>
@@ -178,15 +186,22 @@ function createCustomModelForLanguage(modelName) {
                                 {{#Mnemonic}}
                                 <br>
                                 <div style='font-family: "Arial"; font-size: 18px;'>
-                                    <b>${chrome.i18n.getMessage("Mnemonic")}</b><br>
-                                    {{Mnemonic}}
+                                    <b>${chrome.i18n.getMessage("ExampleCard")}</b><br>
+                                    {{ExampleCard}}
+                                </div>
+                                {{/Mnemonic}}
+                                {{#Mnemonic}}
+                                <br>
+                                <div style='font-family: "Arial"; font-size: 18px;'>
+                                    <b>${chrome.i18n.getMessage("ExampleCardGerman")}</b><br>
+                                    {{ExampleCardGerman}}
                                 </div>
                                 {{/Mnemonic}}`
                         },
                         {
                             Name: "Card 2 (Reverse)",
                             Front: `{{#Add Reverse}}{{Selection}}{{/Add Reverse}}`,
-                            Back: `{{#Add Reverse}}{{FrontSide}}<hr id="answer">{{Definition}}{{/Add Reverse}}`
+                            Back: `{{#Add Reverse}}{{FrontSide}}<hr id="answer">{{Translation}}{{/Add Reverse}}`
                         }
                     ]
                 });
@@ -458,16 +473,18 @@ function getSystemPrompt(type) {
     switch (type) {
         case CONVERSATION_TYPES.FLASHCARD:
             return chrome.i18n.getMessage("generateFlashcardInstructions");
-        case CONVERSATION_TYPES.DEFINITION:
-            return chrome.i18n.getMessage("helpfulAssistantDefinition");
-        case CONVERSATION_TYPES.MNEMONIC:
-            return chrome.i18n.getMessage("creativeAssistantMnemonic");
         case CONVERSATION_TYPES.TRANSLATION:
             return chrome.i18n.getMessage("translationAssistant");
-        case CONVERSATION_TYPES.CONTEXT:
-            return chrome.i18n.getMessage("contextAssistant");
+        case CONVERSATION_TYPES.CONJUGATION:
+            return chrome.i18n.getMessage("helpfulAssistantConjugation");
+        case CONVERSATION_TYPES.GENDER:
+            return chrome.i18n.getMessage("helpfulAssistantGender");
         case CONVERSATION_TYPES.EXAMPLES:
             return chrome.i18n.getMessage("examplesAssistant");
+        case CONVERSATION_TYPES.EXAMPLECARD:
+            return chrome.i18n.getMessage("exampleCardAssistant");
+        case CONVERSATION_TYPES.EXAMPLECARDGERMAN:
+            return chrome.i18n.getMessage("exampleCardGermanAssistant");
         default:
             console.log(`Unknown conversation type: ${type}`);
             return chrome.i18n.getMessage("generateFlashcardInstructions");
@@ -540,28 +557,32 @@ async function callChatGPTAPI(userId, type, userMessage, language, apiKey = null
                             schema: {
                                 type: "object",
                                 properties: {
-                                    definition: {
-                                        type: "string",
-                                        description: `A clear and concise definition of the term or concept in ${language}`
-                                    },
-                                    mnemonic: {
-                                        type: "string",
-                                        description: `A memory aid to help remember the definition in ${language}`
-                                    },
                                     translation: {
                                         type: "string",
                                         description: `A direct translation of the term, in ${language}.`
                                     },
-                                    context: {
+                                    conjugation: {
                                         type: "string",
-                                        description: `The context in which the term or expression is used in ${language}`
+                                        description: chrome.i18n.getMessage("helpfulAssistantConjugation")
+                                    },
+                                    gender: {
+                                        type: "string",
+                                        description: chrome.i18n.getMessage("helpfulAssistantGender")
                                     },
                                     examples: {
                                         type: "string",
-                                        description: `A few example sentences using the term or expression in ${language}`
-                                    }
+                                        description: chrome.i18n.getMessage("examplesAssistant")
+                                    },
+                                    exampleCard: {
+                                        type: "string",
+                                        description: chrome.i18n.getMessage("exampleCardAssistant")
+                                    },
+                                    exampleCardGerman: {
+                                        type: "string",
+                                        description: chrome.i18n.getMessage("exampleCardGermanAssistant")
+                                    },
                                 },
-                                required: ["definition", "mnemonic", "translation", "context", "examples"],
+                                required: [ "translation","conjugation","gender", "examples","exampleCard","exampleCardGerman"],
                                 additionalProperties: false
                             },
                             strict: true
@@ -599,8 +620,10 @@ async function callChatGPTAPI(userId, type, userMessage, language, apiKey = null
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
                 }
+
 
                 const data = await response.json();
                 console.log("Full API response:", data);

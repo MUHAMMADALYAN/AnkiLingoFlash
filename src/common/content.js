@@ -81,11 +81,12 @@ if (window.hasRun === true) {
      */
     const CONVERSATION_TYPES = {
         FLASHCARD: 'flashcard',
-        DEFINITION: 'definition',
-        MNEMONIC: 'mnemonic',
         TRANSLATION: 'translation',
-        CONTEXT: 'context',
-        EXAMPLES: 'examples'
+        CONJUGATION: 'conjugation',
+        GENDER: 'gender',
+        EXAMPLES: 'examples',
+        EXAMPLECARD: 'exampleCard',
+        EXAMPLECARDGERMAN: 'exampleCardGerman'
     };
 
     /** 
@@ -336,94 +337,101 @@ if (window.hasRun === true) {
      * @param {string} part - The part of the flashcard to regenerate ('definition' or 'mnemonic').
      * @param {string} flashcardId - The ID of the flashcard to update.
      */
-    function regenerateContent(part, flashcardId) {
-        checkAuth((isAuthenticated) => {
-            if (!isAuthenticated) {
-                showToast(chrome.i18n.getMessage("pleaseLogInForFreeTrial"));
-                return;
-            }
     
-            chrome.storage.sync.get(['choice', 'model', 'isOwnCredits', 'flashcards', 'language', 'regenerationLimit', 'userId'], function (settings) {
-                if (settings.choice === 'remote') {
-                    const flashcard = settings.flashcards[flashcardId];
-                    if (!flashcard) {
-                        console.log('Flashcard not found');
-                        return;
-                    }
-    
-                    if (!settings.isOwnCredits && flashcard.regenerationCount[part] >= settings.regenerationLimit) {
-                        showToast(chrome.i18n.getMessage(`${part}RegenerationLimitReached`, [settings.regenerationLimit]));
-                        return;
-                    }
-    
-                    flashcard.regenerationCount[part]++;
-                    settings.flashcards[flashcardId] = flashcard;
-                    chrome.storage.sync.set({ flashcards: settings.flashcards });
-    
-                    showToast(chrome.i18n.getMessage(`regenerating${part.charAt(0).toUpperCase() + part.slice(1)}`), true, true);
-    
-                    const reviewModal = globalShadowRoot.querySelector('#anki-lingo-flash-review-modal');
-                    if (reviewModal) reviewModal.style.display = 'none';
-    
-                    let userPrompt;
-                    if (part === 'definition') {
-                        userPrompt = chrome.i18n.getMessage("generateDefinition", [settings.language, flashcard.verso]);
-                    } else if (part === 'mnemonic') {
-                        userPrompt = chrome.i18n.getMessage("generateMnemonic", [settings.language, flashcard.verso]);
-                    } else if (part === 'translation') {
-                        userPrompt = chrome.i18n.getMessage("generateTranslation", [settings.language, flashcard.verso]);
-                    } else if (part === 'context') {
-                        userPrompt = chrome.i18n.getMessage("generateContext", [settings.language, flashcard.verso]);
-                    } else if (part === 'examples') {
-                        userPrompt = chrome.i18n.getMessage("generateExamples", [settings.language, flashcard.verso]);
-                    }
-    
-                    chrome.runtime.sendMessage({
-                        action: "callChatGPTAPI",
-                        userId: settings.userId,
-                        type: CONVERSATION_TYPES[part.toUpperCase()],
-                        message: userPrompt,
-                        language: settings.language
-                    }, response => {
-                        if (response.success) {
-                            let newContent = response.data;
-    
-                            if (part === 'definition' && newContent.definition) {
-                                flashcard.recto = newContent.definition;
-                            } else if (part === 'mnemonic' && newContent.mnemonic) {
-                                flashcard.mnemonic = newContent.mnemonic;
-                            } else if (part === 'translation' && newContent.translation) {
-                                flashcard.translation = newContent.translation;
-                            } else if (part === 'context' && newContent.context) {
-                                flashcard.context = newContent.context;
-                            } else if (part === 'examples' && newContent.examples) {
-                                flashcard.examples = newContent.examples;
-                            } else {
-                                console.log(`Invalid content for ${part}:`, newContent);
-                                showToast(chrome.i18n.getMessage(`errorRegenerating${part.charAt(0).toUpperCase() + part.slice(1)}`));
-                                if (reviewModal) reviewModal.style.display = 'flex';
-                                return;
-                            }
-    
-                            settings.flashcards[flashcardId] = flashcard;
-                            chrome.storage.sync.set({ flashcards: settings.flashcards }, function () {
-                                updateModalContent(flashcard);
-                                removeCurrentToast();
-                                if (reviewModal) reviewModal.style.display = 'flex';
-                            });
+function regenerateContent(part, flashcardId) {
+    checkAuth((isAuthenticated) => {
+        if (!isAuthenticated) {
+            showToast(chrome.i18n.getMessage("pleaseLogInForFreeTrial"));
+            return;
+        }
+
+        chrome.storage.sync.get(['choice', 'model', 'isOwnCredits', 'flashcards', 'language', 'regenerationLimit', 'userId'], function (settings) {
+            if (settings.choice === 'remote') {
+                const flashcard = settings.flashcards[flashcardId];
+                if (!flashcard) {
+                    console.log('Flashcard not found');
+                    return;
+                }
+
+                if (!settings.isOwnCredits && flashcard.regenerationCount[part] >= settings.regenerationLimit) {
+                    showToast(chrome.i18n.getMessage(`${part}RegenerationLimitReached`, [settings.regenerationLimit]));
+                    return;
+                }
+
+                flashcard.regenerationCount[part]++;
+                settings.flashcards[flashcardId] = flashcard;
+                chrome.storage.sync.set({ flashcards: settings.flashcards });
+
+                showToast(chrome.i18n.getMessage(`regenerating${part.charAt(0).toUpperCase() + part.slice(1)}`), true, true);
+
+                const reviewModal = globalShadowRoot.querySelector('#anki-lingo-flash-review-modal');
+                if (reviewModal) reviewModal.style.display = 'none';
+
+                let userPrompt;
+                if (part === 'translation') {
+                    userPrompt = chrome.i18n.getMessage("generateTranslation", [settings.language, flashcard.verso]);
+                } else if (part === 'conjugation') {
+                    userPrompt = chrome.i18n.getMessage("generateConjugation", [settings.language, flashcard.verso]);
+                } else if (part === 'gender') {
+                    userPrompt = chrome.i18n.getMessage("generateGender", [settings.language, flashcard.verso]);
+                } else if (part === 'examples') {
+                    userPrompt = chrome.i18n.getMessage("generateExamples", [settings.language, flashcard.verso]);
+                } else if (part === 'exampleCard') {
+                    userPrompt = chrome.i18n.getMessage("generateExampleCard", [settings.language, flashcard.verso]);
+                } else if (part === 'exampleCardGerman') {
+                    userPrompt = chrome.i18n.getMessage("generateExampleCardGerman", [settings.language, flashcard.exampleCard]);
+                }
+
+                chrome.runtime.sendMessage({
+                    action: "callChatGPTAPI",
+                    userId: settings.userId,
+                    type: CONVERSATION_TYPES[part.toUpperCase()],
+                    message: userPrompt,
+                    language: settings.language
+                }, response => {
+                    if (response.success) {
+                        let newContent = response.data;
+
+                        if (part === 'translation' && newContent.translation) {
+                            flashcard.translation = newContent.translation;
+                        } else if (part === 'conjugation' && newContent.conjugation) {
+                            flashcard.conjugation = newContent.conjugation;
+                        } else if (part === 'gender' && newContent.gender) {
+                            flashcard.gender = newContent.gender;
+                        } else if (part === 'exampleCard' && newContent.exampleCard) {
+                            flashcard.exampleCard = newContent.exampleCard;
+                            // Regenerate the German example with the new English example
+                            regenerateContent('exampleCardGerman', flashcardId);
+                        } else if (part === 'examples' && newContent.examples) {
+                            flashcard.examples = newContent.examples;
+                        } else if (part === 'exampleCardGerman' && newContent.exampleCardGerman) {
+                            flashcard.exampleCardGerman = newContent.exampleCardGerman;
                         } else {
-                            console.log(`Error regenerating ${part}:`, response.error);
+                            console.log(`Invalid content for ${part}:`, newContent);
                             showToast(chrome.i18n.getMessage(`errorRegenerating${part.charAt(0).toUpperCase() + part.slice(1)}`));
                             if (reviewModal) reviewModal.style.display = 'flex';
+                            return;
                         }
-                    });
-                } else {
-                    console.log('Local model regeneration not implemented');
-                }
-            });
+
+                        settings.flashcards[flashcardId] = flashcard;
+                        chrome.storage.sync.set({ flashcards: settings.flashcards }, function () {
+                            updateModalContent(flashcard);
+                            removeCurrentToast();
+                            if (reviewModal) reviewModal.style.display = 'flex';
+                        });
+                    } else {
+                        console.log(`Error regenerating ${part}:`, response.error);
+                        showToast(chrome.i18n.getMessage(`errorRegenerating${part.charAt(0).toUpperCase() + part.slice(1)}`));
+                        if (reviewModal) reviewModal.style.display = 'flex';
+                    }
+                });
+            } else {
+                console.log('Local model regeneration not implemented');
+            }
         });
+    });
     }
-    
+
     /**
      * Updates the content of the review modal with the given flashcard data.
      * 
@@ -432,12 +440,24 @@ if (window.hasRun === true) {
     function updateModalContent(flashcard) {
         const modal = globalShadowRoot.querySelector('#anki-lingo-flash-review-modal');
         if (modal) {
-            modal.querySelector('.definition').value = flashcard.recto;
-            modal.querySelector('.back').value = flashcard.verso;
-            modal.querySelector('.context').value = flashcard.context || '';
-            modal.querySelector('.translation').value = flashcard.translation || '';
-            modal.querySelector('.examples').value = flashcard.examples || '';
-            modal.querySelector('.mnemonic').value = flashcard.mnemonic || '';
+            const updateField = (selector, value) => {
+                const element = modal.querySelector(selector);
+                if (element) {
+                    element.value = value || '';
+                } else {
+                    console.warn(`Element not found: ${selector}`);
+                }
+            };
+    
+            updateField('.translation', flashcard.recto);
+            updateField('.back', flashcard.verso);
+            updateField('.conjugation', flashcard.conjugation);
+            updateField('.gender', flashcard.gender);
+            updateField('.examples', flashcard.examples);
+            updateField('.exampleCard', flashcard.exampleCard);
+            updateField('.exampleCardGerman', flashcard.exampleCardGerman);
+        } else {
+            console.error('Review modal not found in the DOM');
         }
     }
     
@@ -807,37 +827,51 @@ if (window.hasRun === true) {
                     <h3>${chrome.i18n.getMessage("front")}</h3>
                     <div class="sub-section-content">
                         <div class="input-with-button">
-                            <textarea class="definition editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.recto)}</textarea>
-                            <button id="regenerateDefinition" class="regenerate-button"></button>
+                            <textarea class="translation editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.recto)}</textarea>
+                            <button id="regenerateTranslation" class="regenerate-button"></button>
+                        </div>
+                    </div>
+                    <div class="sub-section" id="mnemonic-section">
+                        <div class="sub-section-content">
+                            <div class="input-with-button">
+                                <textarea class="exampleCard editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.exampleCard || '')}</textarea>
+                                <button id="regenerateExampleCard" class="regenerate-button"></button>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="section">
                     <h3>${chrome.i18n.getMessage("back")}</h3>
                     <div class="sub-section">
-                        <h4>${chrome.i18n.getMessage("selectedText")}</h4>
                         <div class="sub-section-content">
                             <div class="input-with-button">
                                 <textarea class="back editable ${isArabic(flashcard.detectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.verso)}</textarea>
                                 <div class="spacer"></div>
                             </div>
                         </div>
-                    </div>
-                    <div class="sub-section">
-                        <h4>${chrome.i18n.getMessage("context")}</h4>
+                         <div class="sub-section" id="mnemonic-section">
                         <div class="sub-section-content">
                             <div class="input-with-button">
-                                <textarea class="context editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.context || '')}</textarea>
-                                <button id="regenerateContext" class="regenerate-button"></button>
+                                <textarea class="exampleCardGerman editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.exampleCardGerman || '')}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <div class="sub-section">
+                        <h4>${chrome.i18n.getMessage("conjugation")}</h4>
+                        <div class="sub-section-content">
+                            <div class="input-with-button">
+                                <textarea class="conjugation editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.conjugation || '')}</textarea>
+                                <button id="regenerateConjugation" class="regenerate-button"></button>
                             </div>
                         </div>
                     </div>
                     <div class="sub-section">
-                        <h4>${chrome.i18n.getMessage("directTranslation")}</h4>
+                        <h4>${chrome.i18n.getMessage("gender")}</h4>
                         <div class="sub-section-content">
                             <div class="input-with-button">
-                                <textarea class="translation editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.translation || '')}</textarea>
-                                <button id="regenerateTranslation" class="regenerate-button"></button>
+                                <textarea class="gender editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.gender|| '')}</textarea>
+                                <button id="regenerateGender" class="regenerate-button"></button>
                             </div>
                         </div>
                     </div>
@@ -847,15 +881,6 @@ if (window.hasRun === true) {
                             <div class="input-with-button">
                                 <textarea class="examples editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.examples || '')}</textarea>
                                 <button id="regenerateExamples" class="regenerate-button"></button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="sub-section" id="mnemonic-section">
-                        <h4>${chrome.i18n.getMessage("Mnemonic")}</h4>
-                        <div class="sub-section-content">
-                            <div class="input-with-button">
-                                <textarea class="mnemonic editable ${isArabic(selectedLanguage) ? 'rtl-language' : ''}" rows="3">${escapeHTML(flashcard.mnemonic || '')}</textarea>
-                                <button id="regenerateMnemonic" class="regenerate-button"></button>
                             </div>
                         </div>
                     </div>
@@ -883,12 +908,13 @@ if (window.hasRun === true) {
             if (event.target.id === 'validateButton') {
                 const updatedFlashcard = {
                     id: flashcard.id,
-                    recto: this.querySelector('#reviewModal .definition').value,
+                    recto: this.querySelector('#reviewModal .translation').value,
                     verso: this.querySelector('#reviewModal .back').value,
-                    context: this.querySelector('#reviewModal .context').value,
-                    translation: this.querySelector('#reviewModal .translation').value,
+                    conjugation: this.querySelector('#reviewModal .conjugation').value,
+                    gender: this.querySelector('#reviewModal .gender').value,
                     examples: this.querySelector('#reviewModal .examples').value,
-                    mnemonic: this.querySelector('#reviewModal .mnemonic').value,
+                    exampleCard: this.querySelector('#reviewModal .exampleCard').value,
+                    exampleCardGerman: this.querySelector('#reviewModal .exampleCardGerman').value,
                     regenerationCount: flashcard.regenerationCount,
                     detectedLanguage: flashcard.detectedLanguage
                 };
@@ -900,14 +926,14 @@ if (window.hasRun === true) {
                 chrome.runtime.sendMessage({ action: "flashcardCreationCanceled" }, function (response) {
                     showToast(chrome.i18n.getMessage("flashcardCreationCanceled"));
                 });
-            } else if (event.target.id === 'regenerateDefinition') {
-                regenerateContent('definition', flashcard.id);
-            } else if (event.target.id === 'regenerateContext') {
-                regenerateContent('context', flashcard.id);
-            } else if (event.target.id === 'regenerateMnemonic') {
-                regenerateContent('mnemonic', flashcard.id);
             } else if (event.target.id === 'regenerateTranslation') {
                 regenerateContent('translation', flashcard.id);
+            } else if (event.target.id === 'regenerateConjugation') {
+                regenerateContent('conjugation', flashcard.id);
+            } else if (event.target.id === 'regenerateGender') {
+                regenerateContent('gender', flashcard.id);
+            } else if (event.target.id === 'regenerateExampleCard') {
+                regenerateContent('exampleCard', flashcard.id);
             } else if (event.target.id === 'regenerateExamples') {
                 regenerateContent('examples', flashcard.id);
             }
@@ -937,7 +963,7 @@ if (window.hasRun === true) {
         if (settings.choice === 'remote') {
             console.log('Using remote model');
     
-            const userMessage = chrome.i18n.getMessage("generateFlashcardPrompt", [language, selectedText]);
+            const userMessage = chrome.i18n.getMessage("generateFlashcardPrompt", ["german", selectedText]);
     
             try {
                 const response = await new Promise((resolve, reject) => {
@@ -962,13 +988,14 @@ if (window.hasRun === true) {
                     const flashcardId = Date.now().toString();
                     const newFlashcard = {
                         id: flashcardId,
-                        recto: flashcardData.definition,
+                        recto: flashcardData.translation,
                         verso: selectedText,
-                        context: flashcardData.context,
-                        mnemonic: flashcardData.mnemonic,
-                        translation: flashcardData.translation,
+                        conjugation: flashcardData.conjugation,
+                        gender: flashcardData.gender,
                         examples: flashcardData.examples,
-                        regenerationCount: { definition: 0, mnemonic: 0, context: 0, translation: 0, examples: 0 }
+                        exampleCard: flashcardData.exampleCard,
+                        exampleCardGerman: flashcardData.exampleCardGerman,
+                        regenerationCount: { translation: 0, conjugation: 0, gender: 0, exampleCard: 0, examples: 0, exampleCardGerman:0 }
                     };
                     console.log("NEW FLASHCARD:");
                     console.log(newFlashcard);
@@ -992,6 +1019,14 @@ if (window.hasRun === true) {
                     }
                 } else {
                     console.log("API Error:", response.error);
+                    if (response.error.includes('HTTP error! status: 400')) {
+                        console.log("Bad Request Error. Request details:", {
+                            userId: settings.userId,
+                            type: CONVERSATION_TYPES.FLASHCARD,
+                            language: language,
+                            messageLength: userMessage.length
+                        });
+                    }
                     showToast(chrome.i18n.getMessage("errorCreatingFlashcard"));
                 }
             } catch (error) {
@@ -1073,22 +1108,43 @@ if (window.hasRun === true) {
                 if (!models.includes(modelName)) {
                     return invoke('createModel', 6, {
                         modelName: modelName,
-                        inOrderFields: ["Definition", "Selection", "Context", "Translation", "Examples", "Mnemonic", "Add Reverse"],
+                        inOrderFields: ["Selection", "Translation", "Examples","Conjugation","Grammer","ExampleCard","ExampleCardGerman", "Add Reverse"],
                         cardTemplates: [
                             {
                                 Name: "Card 1",
-                                Front: `{{Definition}}`,
+                                Front: `{{Translation}}
+                                {{#Mnemonic}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("ExampleCard")}</b><br>
+                                        {{Mnemonic}}
+                                    </div>
+                                {{/Mnemonic}}`
+                                ,
                                 Back: `{{FrontSide}}
                                     <hr id="answer">
                                     <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>
                                         <div style="margin-bottom: 5px;">{{Selection}}</div>
                                         <div style="margin-bottom: 10px;">${chrome.i18n.getMessage('moveLineHere')}</div>
-                                        <i>{{Translation}}</i>
                                     </div>
+                                    {{#Mnemonic}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("ExampleCardGerman")}</b><br>
+                                        {{Mnemonic}}
+                                    </div>
+                                    {{/Mnemonic}}
                                     {{#Context}}
                                     <br>
                                     <div style='font-family: "Arial"; font-size: 18px;'>
-                                        <b>${chrome.i18n.getMessage("Context")}</b><br>
+                                        <b>${chrome.i18n.getMessage("Conjugation")}</b><br>
+                                        {{Context}}
+                                    </div>
+                                    {{/Context}}
+                                    {{#Context}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("Gender")}</b><br>
                                         {{Context}}
                                     </div>
                                     {{/Context}}
@@ -1099,30 +1155,44 @@ if (window.hasRun === true) {
                                         {{Examples}}
                                     </div>
                                     {{/Examples}}
-                                    {{#Mnemonic}}
-                                    <br>
-                                    <div style='font-family: "Arial"; font-size: 18px;'>
-                                        <b>${chrome.i18n.getMessage("Mnemonic")}</b><br>
-                                        {{Mnemonic}}
-                                    </div>
-                                    {{/Mnemonic}}`
+                                    `
                             },
                             {
                                 Name: "Card 2 (Reverse)",
                                 Front: `{{#Add Reverse}}
                                     <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>{{Selection}}</div>
+                                    {{#Mnemonic}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("ExampleCardGerman")}</b><br>
+                                        {{Mnemonic}}
+                                    </div>
+                                    {{/Mnemonic}}
                                 {{/Add Reverse}}`,
                                 Back: `{{#Add Reverse}}
                                     {{FrontSide}}
                                     <hr id="answer">
                                     <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>
-                                        <div style="margin-bottom: 5px;">{{Definition}}</div>
                                         <i>{{Translation}}</i>
                                     </div>
+                                    {{#Mnemonic}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("ExampleCard")}</b><br>
+                                        {{Mnemonic}}
+                                    </div>
+                                    {{/Mnemonic}}
                                     {{#Context}}
                                     <br>
                                     <div style='font-family: "Arial"; font-size: 18px;'>
-                                        <b>${chrome.i18n.getMessage("Context")}</b><br>
+                                        <b>${chrome.i18n.getMessage("Conjugation")}</b><br>
+                                        {{Context}}
+                                    </div>
+                                    {{/Context}}
+                                    {{#Context}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("Gender")}</b><br>
                                         {{Context}}
                                     </div>
                                     {{/Context}}
@@ -1132,14 +1202,7 @@ if (window.hasRun === true) {
                                         <b>${chrome.i18n.getMessage("Examples")}</b><br>
                                         {{Examples}}
                                     </div>
-                                    {{/Examples}}
-                                    {{#Mnemonic}}
-                                    <br>
-                                    <div style='font-family: "Arial"; font-size: 18px;'>
-                                        <b>${chrome.i18n.getMessage("Mnemonic")}</b><br>
-                                        {{Mnemonic}}
-                                    </div>
-                                    {{/Mnemonic}}
+                                    {{/Examples}}       
                                 {{/Add Reverse}}`
                             }
                         ]
@@ -1174,12 +1237,13 @@ if (window.hasRun === true) {
                     "deckName": selectedDeck,
                     "modelName": modelName,
                     "fields": {
-                        "Definition": data.recto,
+                        "Translation": data.recto,
                         "Selection": `<div style='text-align: center;'>${data.verso}<br><br></div>`,
-                        "Context": data.context || '',
-                        "Translation": data.translation || '',
+                        "Conjugation": data.conjugation || '',
+                        "Grammer": data.gender || '',
                         "Examples": data.examples || '',
-                        "Mnemonic": data.mnemonic || '',
+                        "ExampleCard": data.exampleCard || '',
+                        "ExampleCardGerman": data.exampleCardGerman || '',
                         "Add Reverse": createReverse ? "1" : ""
                     },
                     "options": {
@@ -1189,6 +1253,7 @@ if (window.hasRun === true) {
                 };
     
                 console.log("Prepared note:", note);
+                console.log("Full note object:", JSON.stringify(note, null, 2));
                 return invoke('addNote', 6, { note });
             })
             .then(result => {

@@ -17,39 +17,70 @@
   "ankiConnectionFailed": {
     "message": "Connection to Anki failed. Please make sure Anki is running."
   },
-  "Definition": {
-    "message": "Definition"
+  "ExampleCard": {
+    "message": "Example Card"
+  },
+  "ExampleCardGerman": {
+    "message": "Example Card German "
   },
   "Selection": {
     "message": "Selection"
   },
-  "Mnemonic": {
-    "message": "Mnemonic"
+  "Gender": {
+    "message": "Grammer"
   },
-  "regeneratingDefinition": {
-    "message": "Regenerating definition"
+  "Conjugation": {
+    "message": "Conjugation"
   },
-  "regeneratingMnemonic": {
-    "message": "Regenerating mnemonic"
+  "regeneratingExampleCard": {
+    "message": "Regenerating example for reverse card"
   },
-  "helpfulAssistantDefinition": {
-    "message": "You are a helpful assistant capable of generating concise and accurate definitions in $1 for various terms or expressions. Always respond in JSON format with a 'definition' key. For example: {\"definition\": \"Your definition here\"}.",
+  "regeneratingGender": {
+    "message": "Regenerating gender"
+  },
+
+  "helpfulAssistantConjugation": {
+    "message": "You are a creative assistant specialized in generating,If selected term or expression :[$2] is a sentence then leave it as it is but if it is not a sentence and if it has conjgations, provide conjugations along with the respective personal pronouns with a check if it is in past tense conjugation then also give conjugations wrt present tense along with past, if it is present tense form only give present conjugations, kindly output in a sentence with heading Present or Past based on sentence and then seprated by comma only conjugations with personal pronoun and at the end the infinitive form with infinitve heading:, but if it has not conjugation then return empty string. For example: {\"conjugation\": \"Your conjugations here e.g. Presnt: ich habe, du hast ...., Infinitve form: haben\"}.",
     "placeholders": {
       "1": {
         "content": "$1"
       }
     }
   },
-  "creativeAssistantMnemonic": {
-    "message": "You are a creative assistant specialized in generating effective mnemonics in $1 to remember the definition of words or expressions. Always respond in JSON format with a 'mnemonic' key. For example: {\"mnemonic\": \"Your mnemonic here\"}.",
+  "helpfulAssistantGender": {
+    "message": "You are a creative assistant specialized in generating, If selected term or expression is a sentence leave it as it is but if it is not a sentence and then if it has gender or plual form, provide its gender or tell its singular form if it is plural and gives its Deklination such that the articles and one of its possessive pronouns forms in accusative and dative and output in a sentence seperated by comma only, but if it has not gender or Deklination,if it is not then second thing you check if it is adverb, if it is then return which comparison form it is along with its other forms, if it is also not adverb third thing check if it is adjective and similiary tell which comparison form it is along with other form and if possible give detail of whether it is used on the basis of which gender and sentence like accusative or dative, if these three cases are not present and excluding any detail if is verb or any type of verb leave empty string , then check which grammer e.g prepoistion,auxilary,modal,participle or something else and expalin what it is and define brefiely what it is and how or which form of it is used here along with other form, if none of is true then return empty string , give answer in 2 to 3 lines. Always respond in JSON format with a 'gender' key. For example: {\"gender\": \"Your gender here e.g. Gender: M or F , Accusative: possesive pronoun or article handy, Dative:meinem possesive pronoun or article handy or Ajective or Adverb: Positive form, superlative form etc , used in dative or accussative wrt gender M,F\"}.",
     "placeholders": {
       "1": {
         "content": "$1"
       }
     }
   },
-  "generateDefinition": {
-    "message": "Provide a concise and clear definition in $1 for the term/expression: [$2]. The response should be a JSON containing only the definition without mentioning the term/expression. Format: {\"definition\": \"Your definition here\"}.",
+  "exampleCardAssistant": {
+    "message": "You are a creative assistant specialized in generating, If selected term or expression  is a sentence leave it as it is but if it is not a sentence then then create one basic but most commonly used example sentence of german in basic A1 or A2 level but translated in english having or containing selected the german term or expression translated word in english and highlighting it in qoutation within english sentence not german word itself. For example: {\"exampleCard\": \"Your exampleCard here\"}.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "exampleCardGermanAssistant": {
+    "message": "You are a creative assistant specialized in generating. Create german translation of sentence that you created in exampleCard. For example: {\"exampleCardGerman\": \"Your exampleCardGerman here\"}.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      }
+    }
+  },
+  "examplesAssistant": {
+  "message": "You are a helpful assistant specialized in generating,If selected term or expression  is a sentence leave it as it is but if it is not a sentence then create most commonly used example in german basic A1 or A2 level using the term or expression e.g. example can be a part of mostly common conversation,question answers, querying and anything just make example really useful and commonly used not stick to what i mentioned only, and at the end along with their translation in english at the end of sentences. Respond in JSON format with an 'example' key. For example: {\"example\": \". example. \n. (translation).\"} (\\n represents a real line break, not the literal characters).",
+  "placeholders": {
+    "1": {
+      "content": "$1"
+    }
+  }
+},
+"generateConjugation": {
+    "message": "If selected term or expression :[$2] is a sentence then leave it as it is but if it is not a sentence and if it has conjgations, provide conjugations along with the respective personal pronouns with a check if it is in past tense conjugation then also give conjugations wrt present tense conjugations along with past conjugation, if it is present tense form only give present conjugations, kindly output in a sentence with heading Present or Past based on sentence and then seprated by comma only conjugations with personal pronoun and at the end the infinitive form with infinitve heading:, but if it has not conjugation then return empty string. For example: {\"conjugation\": \"Your conjugations here e.g. Presnt: ich habe, du hast ...., Infinitve form: haben\"}.",
     "placeholders": {
       "1": {
         "content": "$1"
@@ -59,8 +90,8 @@
       }
     }
   },
-  "generateMnemonic": {
-    "message": "Generate a concise mnemonic in $1 to help remember the term/expression: [$2]. The response should be a JSON containing only the mnemonic. Format: {\"mnemonic\": \"Your mnemonic here\"}.",
+  "generateGender": {
+    "message": "If selected term or expression :[$2] is a sentence leave it as it is but if it is not a sentence and then if it has gender or plual form, provide its gender or tell its singular form if it is plural and gives its Deklination such that the articles and one of its possessive pronouns forms in accusative and dative and output in a sentence seperated by comma only, but if it has not gender or Deklination,if it is not then second thing you check if it is adverb, if it is then return which comparison form it is along with its other forms, if it is also not adverb third thing check if it is adjective and similiary tell which comparison form it is along with other form and if possible give detail of whether it is used on the basis of which gender and sentence like accusative or dative, if these three cases are not present and excluding any detail if is verb or any type of verb leave empty string then check which grammer e.g prepoistion,auxilary,modal,participle or something else and expalin what it is and define brefiely what it is and how or which form of it is used here along with other form, if none of is true then return empty string , give answer in 2 to 3 lines. Always respond in JSON format with a 'gender' key. For example: {\"gender\": \"Your gender here e.g. Gender: M or F , Accusative: possesive pronoun or article handy, Dative:meinem possesive pronoun or article handy \"}.",
     "placeholders": {
       "1": {
         "content": "$1"
@@ -70,6 +101,55 @@
       }
     }
   },
+  "generateExampleCard": {
+    "message": "If selected term or expression: [$2] is not a sentence then then create one basic but most commonly used example sentence of german daily life in basic A1 or A2 level but translated in english having or containing selected the german term or expression translated word in english and highlighting it in qoutation within english sentence not german word itself. For example: {\"exampleCard\": \"Your exampleCard here\"}.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "generateExampleCardGerman": {
+    "message": "Translate the example sentence: [$2] into German. The response should be a JSON containing only the German translation. Format: {\"exampleCardGerman\": \"Your German translation here\"}.",
+    "placeholders": {
+      "1": {
+        "content": "$1"
+      },
+      "2": {
+        "content": "$2"
+      }
+    }
+  },
+  "generateExamples": {
+  "message": "If selected term or expression : [$2] is not a sentence then create most commonly used example or converstaion in german basic A1 or A2 level using the term or expression e.g. example can be a part of mostly common conversation,question answers, querying and anything just make example really useful and commonly used not stick to what i mentioned only, and at the end along with their translation in english at the end of sentences. Respond in JSON format with an 'example' key. For example: {\"example\": \". example. \n. translation.\"} (\\n represents a real line break, not the literal characters).",
+  "placeholders": {
+    "1": {
+      "content": "$1"
+    },
+    "2": {
+      "content": "$2"
+    }
+  }
+},
+
+"generateFlashcardInstructions": {
+    "message": "You are a helpful assistant specialized in generating flashcards for words or expressions. Provide a clear translation, conjugation, gender, examples  (e.g. example., translation.), and a exampleCard."
+  },
+  "generateFlashcardPrompt": {
+  "message": "Generate a comprehensive flashcard in $1 for the term/expression: [$2]. Include the following components:\n\n1. Translation: Provide an accurate direct translation.\n\n2. Conjugation: If selected term or expression :[$2] is a sentence then leave it as it is but if it is not a sentence and if it has conjgations, provide conjugations along with the respective personal pronouns with a check if it is in past tense conjugation then also give conjugations wrt present tense along with past tense conjugations not only past tenses, but if selected term is present tense form only give present conjugations, kindly output in a sentence with heading Present or Past sperated by line break based on sentence and then seprated by comma only conjugations with personal pronoun and at the end the infinitive form with infinitve heading:, but if it has not conjugation then return empty string. For example: {\"conjugation\": \"Your conjugations here e.g. Presnt: ich habe, du hast ....,line break Past: ich hatte ...., Infinitve form: haben\"}, give answer in 2 to 3 lines.\n\n3. Gender: If selected term or expression is a sentence leave it as it is but if it is not a sentence and then if it has gender or plual form, provide its gender or tell its singular form if it is plural and gives its Deklination such that the articles and one of its possessive pronouns forms in accusative and dative and output in a sentence seperated by comma only, but if it has not gender or Deklination,if it is not then second thing you check if it is adverb, if it is then return which comparison form it is along with its other forms, if it is also not adverb third thing check if it is adjective and similiary tell which comparison form it is along with other form and if possible give detail of whether it is used on the basis of which gender and sentence like accusative or dative, if these three cases are not present and excluding any detail if is verb or any type of verb leave empty string then check which grammer e.g prepoistion, or something else, expalin what it is and define brefiely what it is and how or which form of it is used here along with other form, if none of is true then return empty string , give answer in 2 to 3 lines. Always respond in JSON format with a 'gender' key. For example: {\"gender\": \"Your gender here e.g. Gender: M or F , Accusative: possesive pronoun or article handy or adjective or adverb, Dative:meinem possesive pronoun or article handy or adjective or adverb \"}, give answer in 2 to 3 lines.\n\n4. Examples: If selected term or expression  is a sentence leave it as it is but if it is not a sentence then create most commonly used example or conversation or daily life phrase in german basic A1 or A2 level using the term or expression e.g. example can be a part of mostly common conversation,question answers, querying and anything just make example really useful and commonly used not stick to what i mentioned only, and at the end along with their translation in english at the end of sentences. Respond in JSON format with an 'example' key. For example: {\"example\": \" example. \n translation.\"} (\\n represents a real line break, not the literal characters).\n\n5. ExampleCard: If the term is not a sentence, create one basic but commonly used example sentence in English that includes or relates to the $1 term/expression.\n\n6. ExampleCardGerman: Provide a German translation of the ExampleCard sentence.\n\nRespond in JSON format with keys for each component: 'translation', 'conjugation', 'gender', 'examples','exampleCard' and 'exampleCardGerman'. Ensure each component is concise and directly relevant to the term/expression.",
+  "placeholders": {
+    "1": {
+      "content": "$1"
+    },
+    "2": {
+      "content": "$2"
+    }
+  }
+},
+
   "errorRegeneratingDefinition": {
     "message": "Error regenerating definition. Please try again."
   },
@@ -81,20 +161,6 @@
   },
   "duplicateSelectionError": {
     "message": "A card with the same selected text already exists in this deck."
-  },
-  "generateFlashcardInstructions": {
-    "message": "You are a helpful assistant specialized in generating flashcards for words or expressions. Provide a clear definition, typical context, numbered example sentences (e.g., 1., 2., 3.), a mnemonic, and a direct translation. Avoid using the term/expression in the definition. Respond in the language specified by the user. Use real line breaks for multi-line fields, such as examples, without visible text representations (e.g., '<br>' or '\\n'). Example format for examples: {\"examples\": \"1. First example.\n2. Second example.\n3. Third example.\"}"
-  },
-  "generateFlashcardPrompt": {
-    "message": "Generate a flashcard in $1 for the following term/expression in brackets: [$2]. Include a definition, context, examples, mnemonic, and translation.",
-    "placeholders": {
-      "1": {
-        "content": "$1"
-      },
-      "2": {
-        "content": "$2"
-      }
-    }
   },
   "generateFlashcard": {
     "message": "Generate a flashcard"
@@ -698,27 +764,8 @@
     }
   }
 },
-"examplesAssistant": {
-  "message": "You are a helpful assistant specialized in generating clear, numbered example sentences in $1 for various terms or expressions. Respond in JSON format with an 'examples' key, ensuring each example is numbered and separated by real line breaks. For example: {\"examples\": \"1. First example.\n2. Second example.\n3. Third example.\"} (\\n represents a real line break, not the literal characters).",
-  "placeholders": {
-    "1": {
-      "content": "$1"
-    }
-  }
-},
 "generateContext": {
   "message": "Provide a concise and relevant context in $1 for the term/expression: [$2]. The response should be a JSON containing only the context without mentioning the term/expression. Format: {\"context\": \"Your context here\"}.",
-  "placeholders": {
-    "1": {
-      "content": "$1"
-    },
-    "2": {
-      "content": "$2"
-    }
-  }
-},
-"generateExamples": {
-  "message": "Generate a few clear and informative example sentences in $1 using the term/expression: [$2]. The response should be a JSON containing only the examples. Format: {\"examples\": \"Your examples here\"}.",
   "placeholders": {
     "1": {
       "content": "$1"
