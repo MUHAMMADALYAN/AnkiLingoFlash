@@ -1108,24 +1108,33 @@ function regenerateContent(part, flashcardId) {
                 if (!models.includes(modelName)) {
                     return invoke('createModel', 6, {
                         modelName: modelName,
-                        inOrderFields: ["Selection", "Translation", "Examples","Conjugation","Grammer","ExampleCard","ExampleCardGerman", "Add Reverse"],
+                        inOrderFields: ["Selection", "Translation", "Examples", "Conjugation", "Grammer", "ExampleCard", "ExampleCardGerman", "Add Reverse", "Type In Answer"],
                         cardTemplates: [
                             {
-                                Name: "Card 1",
-                                Front: `{{Translation}}
-                                {{#Mnemonic}}
-                                    <br>
-                                    <div style='font-family: "Arial"; font-size: 18px;'>
-                                        <b>${chrome.i18n.getMessage("ExampleCard")}</b><br>
-                                        {{Mnemonic}}
-                                    </div>
-                                {{/Mnemonic}}`
-                                ,
+                                Name: "Card 1 (Basic or Type-in)",
+                                Front: `{{#Type In Answer}}
+                                        {{Translation}}
+                                        <br><br>
+                                        {{#Mnemonic}}
+                                            <div style='font-family: "Arial"; font-size: 18px;'>
+                                                <b>${chrome.i18n.getMessage("ExampleCard")}</b><br>
+                                                {{Mnemonic}}
+                                            </div>
+                                        {{/Mnemonic}}
+                                        <br><br>
+                                        ${chrome.i18n.getMessage("TypeTheAnswer")}:
+                                        {{type:Selection}}
+                                        {{/Type In Answer}}
+                                        {{^Type In Answer}}
+                                        {{Translation}}
+                                        {{/Type In Answer}}`,
                                 Back: `{{FrontSide}}
                                     <hr id="answer">
                                     <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>
                                         <div style="margin-bottom: 5px;">{{Selection}}</div>
+                                        {{^Type In Answer}}
                                         <div style="margin-bottom: 10px;">${chrome.i18n.getMessage('moveLineHere')}</div>
+                                        {{/Type In Answer}}
                                     </div>
                                     {{#Mnemonic}}
                                     <br>
@@ -1222,12 +1231,13 @@ function regenerateContent(part, flashcardId) {
      * @param {string} modelName - The name of the Anki model to use.
      * @returns {Promise} A promise that resolves when the note is added.
      */
-    function checkAndCreateModelBeforeAdding(selectedDeck, data, modelName, createReverse) {
+    function checkAndCreateModelBeforeAdding(selectedDeck, data, modelName, createReverse, createTypeInAnswer) {
         console.log("Starting checkAndCreateModelBeforeAdding");
         console.log("Selected deck:", selectedDeck);
         console.log("Model name:", modelName);
         console.log("Flashcard data:", data);
         console.log("Create reverse card:", createReverse);
+        console.log("Create type-in-answer card:", createTypeInAnswer);
     
         return checkAndCreateModelForLanguage(modelName)
             .then(() => {
@@ -1238,22 +1248,23 @@ function regenerateContent(part, flashcardId) {
                     "modelName": modelName,
                     "fields": {
                         "Translation": data.recto,
-                        "Selection": `<div style='text-align: center;'>${data.verso}<br><br></div>`,
+                        "Selection": data.verso,
                         "Conjugation": data.conjugation || '',
                         "Grammer": data.gender || '',
                         "Examples": data.examples || '',
                         "ExampleCard": data.exampleCard || '',
                         "ExampleCardGerman": data.exampleCardGerman || '',
-                        "Add Reverse": createReverse ? "1" : ""
+                        "Add Reverse": createReverse ? "1" : "",
+                        "Type In Answer": createTypeInAnswer ? "1" : ""
                     },
                     "options": {
-                        allowDuplicate: true
+                        allowDuplicate: true,
+                        duplicateScope: "deck"
                     },
                     "tags": []
                 };
     
                 console.log("Prepared note:", note);
-                console.log("Full note object:", JSON.stringify(note, null, 2));
                 return invoke('addNote', 6, { note });
             })
             .then(result => {
@@ -1325,21 +1336,19 @@ function regenerateContent(part, flashcardId) {
     async function showDeckSelectionModal(data) {
         const decks = await fetchDecks();
         
-        // Retrieve last used deck, language, and reverse card toggle state from storage
-        chrome.storage.sync.get(['lastUsedDeck', 'language', 'createReverseCardToggle'], async function (result) {
+        chrome.storage.sync.get(['lastUsedDeck', 'language', 'createReverseCardToggle', 'createTypeInAnswerToggle'], async function (result) {
             let lastUsedDeck = result.lastUsedDeck;
-            const currentLanguage = data.detectedLanguage || result.language || navigator.language.split('-')[0];
+            const currentLanguage = 'deu'; // Fixed to German
             
             const languageOptions = await generateLanguageOptions(currentLanguage);
-            
+
             const deckOptions = decks.map(deck =>
                 `<option value="${deck}" ${deck === lastUsedDeck ? 'selected' : ''}>${deck}</option>`
             ).join('');
     
-            // Default value for the toggle (if no prior selection, default to 'Yes')
             const createReverseCardToggle = result.createReverseCardToggle !== undefined ? result.createReverseCardToggle : true;
+            const createTypeInAnswerToggle = result.createTypeInAnswerToggle !== undefined ? result.createTypeInAnswerToggle : false;
     
-            // HTML for the modal
             let modalHtml = `
                 <div id="anki-lingo-flash-deck-selection-modal" class="anki-lingo-flash-container">
                     <div id="flashcardModal">
@@ -1359,6 +1368,16 @@ function regenerateContent(part, flashcardId) {
                             <label for="createReverseCardToggle">${chrome.i18n.getMessage("CreateReverseCardLabel")}</label>
                             <label class="toggle-switch">
                                 <input type="checkbox" id="createReverseCardToggle" name="createReverseCardToggle" ${createReverseCardToggle ? 'checked' : ''}>
+                                <span class="slider">
+                                    <span class="toggle-label" data-state="off">No</span>
+                                    <span class="toggle-label" data-state="on">Yes</span>
+                                </span>
+                            </label>
+                        </div>
+                        <div class="create-type-in-answer-checkbox">
+                            <label for="createTypeInAnswerToggle">${chrome.i18n.getMessage("CreateTypeInAnswerLabel")}</label>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="createTypeInAnswerToggle" name="createTypeInAnswerToggle" ${createTypeInAnswerToggle ? 'checked' : ''}>
                                 <span class="slider">
                                     <span class="toggle-label" data-state="off">No</span>
                                     <span class="toggle-label" data-state="on">Yes</span>
@@ -1390,10 +1409,12 @@ function regenerateContent(part, flashcardId) {
                 const selectedDeck = globalShadowRoot.querySelector('#deckSelect').value;
                 const selectedLanguage = globalShadowRoot.querySelector('#languageSelect').value;
                 const createReverse = globalShadowRoot.querySelector('#createReverseCardToggle').checked;
+                const createTypeInAnswer = globalShadowRoot.querySelector('#createTypeInAnswerToggle').checked;
     
                 console.log("Selected deck:", selectedDeck);
                 console.log("Selected language:", selectedLanguage);
                 console.log("Create reverse card:", createReverse);
+                console.log("Create type-in-answer card:", createTypeInAnswer);
     
                 // Map selected language to long language code
                 const longLanguageCode = languageCodeMap[selectedLanguage];
@@ -1401,11 +1422,14 @@ function regenerateContent(part, flashcardId) {
                 const modelName = `AnkiLingoFlash_${languageName}`;
                 console.log("Model name:", modelName);
     
-                // Save the user's choice for future use
-                chrome.storage.sync.set({ createReverseCardToggle: createReverse });
+                // Save the user's choices for future use
+                chrome.storage.sync.set({ 
+                    createReverseCardToggle: createReverse,
+                    createTypeInAnswerToggle: createTypeInAnswer
+                });
     
                 // Check and create model before adding flashcard
-                checkAndCreateModelBeforeAdding(selectedDeck, data, modelName, createReverse)
+                checkAndCreateModelBeforeAdding(selectedDeck, data, modelName, createReverse, createTypeInAnswer)
                     .then(result => {
                         console.log("Note added successfully:", result);
                         showToast(chrome.i18n.getMessage("flashcardAddedToDeck", [selectedDeck]));

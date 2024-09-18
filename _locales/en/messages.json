@@ -805,5 +805,12 @@
   },
   "No": {
     "message": "No"
+  },
+  "CreateTypeInAnswerLabel": {
+    "message": "Create a type-in-answer card?"
+},
+
+  "TypeTheAnswer": {
+    "message": "Type the answer"
   }
 }

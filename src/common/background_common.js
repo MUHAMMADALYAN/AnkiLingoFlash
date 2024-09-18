@@ -150,58 +150,87 @@ function createCustomModelForLanguage(modelName) {
             if (!models.includes(modelName)) {
                 return invoke('createModel', 6, {
                     modelName: modelName,
-                    inOrderFields: ["Selection", "Translation", "Examples","Conjugation","Gender","ExampleCard", "ExampleCardGerman","Add Reverse"],
-                
+                    inOrderFields: ["Selection", "Translation", "Examples", "Conjugation", "Grammer", "ExampleCard", "ExampleCardGerman", "Add Reverse", "Type In Answer"],
                     cardTemplates: [
                         {
-                            Name: "Card 1",
-                            Front: `{{Translation}}`,
-                            Back: `{{FrontSide}}
-                                <hr id="answer">
-                                <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>
-                                    <div style="margin-bottom: 5px;">{{Selection}}</div>
-                                    <div style="margin-bottom: 10px;">${chrome.i18n.getMessage('moveLineHere')}</div>
-                                </div>
-                                {{#Context}}
-                                <br>
-                                <div style='font-family: "Arial"; font-size: 18px;'>
-                                    <b>${chrome.i18n.getMessage("Conjugation")}</b><br>
-                                    {{Conjugation}}
-                                </div>
-                                {{/Context}}
-                                {{#Mnemonic}}
-                                <br>
-                                <div style='font-family: "Arial"; font-size: 18px;'>
-                                    <b>${chrome.i18n.getMessage("Gender")}</b><br>
-                                    {{Gender}}
-                                </div>
-                                {{/Mnemonic}}
-                                {{#Examples}}
-                                <br>
-                                <div style='font-family: "Arial"; font-size: 18px;'>
-                                    <b>${chrome.i18n.getMessage("Examples")}</b><br>
-                                    {{Examples}}
-                                </div>
-                                {{/Examples}}
-                                {{#Mnemonic}}
-                                <br>
-                                <div style='font-family: "Arial"; font-size: 18px;'>
-                                    <b>${chrome.i18n.getMessage("ExampleCard")}</b><br>
+                            Name: "Card 1 (Basic or Type-in)",
+                            Front: `{{Translation}}
+                                    <br><br>
                                     {{ExampleCard}}
-                                </div>
-                                {{/Mnemonic}}
-                                {{#Mnemonic}}
-                                <br>
-                                <div style='font-family: "Arial"; font-size: 18px;'>
-                                    <b>${chrome.i18n.getMessage("ExampleCardGerman")}</b><br>
-                                    {{ExampleCardGerman}}
-                                </div>
-                                {{/Mnemonic}}`
+                                    <br><br>
+                                    {{#Type In Answer}}
+                                    ${chrome.i18n.getMessage("TypeTheAnswer")}:
+                                    {{type:Selection}}
+                                    {{/Type In Answer}}`,
+                            Back: `{{FrontSide}}
+                                    <hr id="answer">
+                                    <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>
+                                        {{#Type In Answer}}
+                                        <div style="font-weight: bold;">{{type:Selection}}</div>
+                                        {{/Type In Answer}}
+                                        {{^Type In Answer}}
+                                        <div style="font-weight: bold;">{{Selection}}</div>
+                                        {{/Type In Answer}}
+                                        <div style="margin-bottom: 10px;">{{ExampleCardGerman}}</div>
+                                    </div>
+                                    {{#Conjugation}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("Conjugation")}</b><br>
+                                        {{Conjugation}}
+                                    </div>
+                                    {{/Conjugation}}
+                                    {{#Grammer}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("Gender")}</b><br>
+                                        {{Grammer}}
+                                    </div>
+                                    {{/Grammer}}
+                                    {{#Examples}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("Examples")}</b><br>
+                                        {{Examples}}
+                                    </div>
+                                    {{/Examples}}
+                                    {{tts de_DE voices=AwesomeTTS:Selection}}`
                         },
                         {
                             Name: "Card 2 (Reverse)",
-                            Front: `{{#Add Reverse}}{{Selection}}{{/Add Reverse}}`,
-                            Back: `{{#Add Reverse}}{{FrontSide}}<hr id="answer">{{Translation}}{{/Add Reverse}}`
+                            Front: `{{#Add Reverse}}
+                                    <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>{{Selection}}</div>
+                                    <div style="margin-bottom: 5px;">{{ExampleCardGerman}}</div>
+                                    {{/Add Reverse}}`,
+                            Back: `{{#Add Reverse}}
+                                    {{FrontSide}}
+                                    <hr id="answer">
+                                    <div style='font-family: "Arial"; font-size: 20px; text-align: center;'>
+                                        <div style="margin-bottom: 5px;">{{Translation}}</div>
+                                        <div style="margin-bottom: 5px;">{{ExampleCard}}</div>
+                                    </div>
+                                    {{#Conjugation}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("Conjugation")}</b><br>
+                                        {{Conjugation}}
+                                    </div>
+                                    {{/Conjugation}}
+                                    {{#Grammer}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("Gender")}</b><br>
+                                        {{Grammer}}
+                                    </div>
+                                    {{/Grammer}}
+                                    {{#Examples}}
+                                    <br>
+                                    <div style='font-family: "Arial"; font-size: 18px;'>
+                                        <b>${chrome.i18n.getMessage("Examples")}</b><br>
+                                        {{Examples}}
+                                    </div>
+                                    {{/Examples}}
+                                    {{/Add Reverse}}`
                         }
                     ]
                 });
